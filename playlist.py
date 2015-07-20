@@ -8,7 +8,6 @@ COLS = {
         'location': 3}
 
 
-
 class Playlist:
     def __init__(self, store:Gtk.ListStore):
         self.store = store
@@ -23,15 +22,14 @@ class Playlist:
             path = self.current.get_path()
             it = self.store.get_iter(path)
             it = self.store.iter_next(it)
-            return it
-            #if it is not None:
-            #    self.select(it)
-            #    title = self.store.get_value(it, 0)
-            #    location = self.store.get_value(it, 3)
-            #    return {'title': title, 'location': location}
-            #else:
-            #    self.current = None
-            #    return None
+            if it is not None:
+                self.select(it)
+                title = self.store.get_value(it, 0)
+                location = self.store.get_value(it, 3)
+                return {'title': title, 'location': location}
+            else:
+                self.current = None
+                return None
 
     def prev(self):
         if self.current is not None and self.current.valid():
@@ -42,4 +40,3 @@ class Playlist:
                 self.select(it)
             else:
                 self.current = None
-

@@ -3,6 +3,17 @@
 <interface>
   <requires lib="gtk+" version="3.12"/>
   <object class="GtkAccelGroup" id="accelgroup1"/>
+  <object class="GtkActionGroup" id="playlistActions">
+    <property name="accel_group">accelgroup1</property>
+    <child>
+      <object class="GtkAction" id="remove">
+        <property name="label" translatable="yes">Remove Selected</property>
+        <property name="icon_name">list-remove</property>
+        <signal name="activate" handler="removeFromPlaylist" object="treeview-selection1" swapped="no"/>
+      </object>
+      <accelerator key="Delete"/>
+    </child>
+  </object>
   <object class="GtkAction" id="accept">
     <property name="label" translatable="yes">Accept</property>
   </object>
@@ -12,6 +23,16 @@
     <property name="icon_name">list-add</property>
     <property name="always_show_image">True</property>
     <signal name="activate" handler="addFiles" object="liststore1" swapped="no"/>
+  </object>
+  <object class="GtkAdjustment" id="adjustment1">
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment2">
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
   </object>
   <object class="GtkAction" id="cancel">
     <property name="label" translatable="yes">Cancel</property>
@@ -48,6 +69,7 @@
   </object>
   <object class="GtkApplicationWindow" id="applicationwindow1">
     <property name="can_focus">False</property>
+    <property name="title" translatable="yes">Logger.py</property>
     <accel-groups>
       <group name="accelgroup1"/>
     </accel-groups>
@@ -97,7 +119,7 @@
           </object>
           <packing>
             <property name="left_attach">1</property>
-            <property name="top_attach">1</property>
+            <property name="top_attach">2</property>
           </packing>
         </child>
         <child>
@@ -127,6 +149,21 @@
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">toolbutton2</property>
                 <property name="use_underline">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="toolbutton6">
+                <property name="use_action_appearance">True</property>
+                <property name="related_action">remove</property>
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">toolbutton6</property>
+                <property name="use_underline">True</property>
+                <accelerator key="Delete" signal="clicked"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -178,16 +215,53 @@
           </packing>
         </child>
         <child>
-          <placeholder/>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-        <child>
-          <placeholder/>
+          <object class="GtkBox" id="durationBar">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkLabel" id="currentTime">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">00:00</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkScale" id="position">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="adjustment">adjustment1</property>
+                <property name="round_digits">1</property>
+                <property name="digits">0</property>
+                <property name="draw_value">False</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="totalDuration">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">59:00</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">1</property>
+          </packing>
         </child>
         <child>
           <placeholder/>

@@ -1,13 +1,9 @@
-import sys
-from os import path
-sys.path.append(path.abspath('../lib'))
-
-import vlc
 from gi.repository import Gtk
 from gi.repository import Gst
 from os.path import basename
 from playlist import Playlist
 from player import Player
+from controllers.timeBar import TimeBarCtrl
 
 COLS = {
         'title': 0,
@@ -18,7 +14,6 @@ COLS = {
 
 class Controller:
     def __init__(self, playlist):
-        #self.mediaPlayer = vlc.libvlc_new(0, None).media_player_new()
         self.mediaPlayer = Player()
         self.playlist = playlist
 
@@ -31,16 +26,17 @@ class Controller:
         self.mediaPlayer.play()
 
     def play(self, *args):
-        print(*args)
         self.mediaPlayer.play()
 
     def pause(self, *args):
-        print(*args)
         self.mediaPlayer.pause()
 
     @staticmethod
     def addFiles(store):
-        d = Gtk.FileChooserDialog()
+        d = Gtk.FileChooserDialog(
+            'Add media',
+            None,
+            Gtk.FileChooserAction.OPEN)
         d.add_button('Accept', Gtk.ResponseType.OK)
         d.add_button('Cancel', Gtk.ResponseType.CANCEL)
         d.set_select_multiple(True)
@@ -53,6 +49,13 @@ class Controller:
                 store.set_value(it, COLS['location'], f)
 
         d.destroy()
+
+    def removeFromPlaylist(self, selection):
+        model, paths = selection.get_selected_rows()
+        refs = [Gtk.TreeRowReference.new(model, p) for p in paths]
+        for ref in refs:
+            it = model.get_iter(ref.get_path())
+            model.remove(it)
 
     @staticmethod
     def clearPlaylist(store):
@@ -70,49 +73,26 @@ class Application:
         playlist = Playlist(store)
         ctrl = Controller(playlist)
         b.connect_signals(ctrl)
+        durationLabel = b.get_object('totalDuration')
+        positionScale = b.get_object('position')
+        timeLabel = b.get_object('currentTime')
+        TimeBarCtrl(ctrl.mediaPlayer.pb, timeLabel, positionScale, durationLabel)
         self.playlist = playlist
         self.mainWindow = b.get_object('applicationwindow1')
         self.mediaPlayer = ctrl.mediaPlayer
-        #self._attachVlcEvents(ctrl.mediaPlayer)
         self._attachGstEvents(ctrl.mediaPlayer)
-
-    def show(self):
-        self.mainWindow.show()
-
 
     def _attachGstEvents(self, mediaPlayer):
         mediaPlayer.event_attach('message::eos', self.onEos)
 
     def onEos(self, *args):
-        print('MESSAGE: EOS', args)
         item = self.playlist.next()
         if item is not None:
-            print(item)
-            print(self.mediaPlayer)
-            #print(type(item['location']))
-            loc = self.playlist.store.get_value(item, 3)
-            print(loc)
-            self.mediaPlayer.set_mrl(loc)
-            #self.mediaPlayer.set_mrl(item['location'])
+            self.mediaPlayer.set_mrl(item['location'])
             self.mediaPlayer.play()
         else:
-            print('playlist end', self, event)
+            print('playlist ended')
         return True
-
-    def onTag(self):
-        print('TAG EVENT')
-
-    def _attachVlcEvents(self, mediaPlayer):
-        event_manager = mediaPlayer.event_manager()
-        #event_manager.event_attach(
-        #    vlc.EventType.MediaPlayerPaused,
-        #    self.onMediaPlayerPaused)
-        #event_manager.event_attach(
-        #    vlc.EventType.MediaPlayerPlaying,
-        #    self.onMediaPlayerPlaying)
-        event_manager.event_attach(
-            vlc.EventType.MediaPlayerEndReached,
-            self.onMediaPlayerEndReached, self)
 
     def onMediaPlayerPaused(self, event):
         self.mainWindow.set_title('== Paused ==')
@@ -121,25 +101,11 @@ class Application:
     def onMediaPlayerPlaying(self, event):
         print('playing', self, event)
 
-    @staticmethod
-    def onMediaPlayerEndReached(event, self):
-        item = self.playlist.next()
-        if item is not None:
-            #print(item)
-            #print(self.mediaPlayer)
-            #print(type(item['location']))
-            loc = self.playlist.store.get_value(item, 3)
-            print(loc)
-            self.mediaPlayer.set_mrl(loc)
-            #self.mediaPlayer.set_mrl(item['location'])
-            self.mediaPlayer.play()
-        else:
-            print('playlist end', self, event)
-
 
 Gst.init(None)
+Gtk.init(None)
 app = Application()
 app.mainWindow.resize(600,400)
-app.show()
+app.mainWindow.show()
 
 Gtk.main()

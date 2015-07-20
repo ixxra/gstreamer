@@ -3,9 +3,7 @@ from gi.repository import Gst
 class Player:
     def __init__(self):
         self.pb = Gst.ElementFactory.make('playbin')
-        bus = self.pb.get_bus()
-        #bus.add_watch(0, self.msg)
-        bus.add_signal_watch()
+        self.pb.get_bus().add_signal_watch()
 
     def play(self):
         self.pb.set_state(Gst.State.PLAYING)
@@ -23,5 +21,4 @@ class Player:
         return True
 
     def event_attach(self, name, callback):
-        bus = self.pb.get_bus()
-        bus.connect(name, callback)
+        self.pb.get_bus().connect(name, callback)
