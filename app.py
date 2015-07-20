@@ -4,9 +4,10 @@ sys.path.append(path.abspath('../lib'))
 
 import vlc
 from gi.repository import Gtk
+from gi.repository import Gst
 from os.path import basename
 from playlist import Playlist
-
+from player import Player
 
 COLS = {
         'title': 0,
@@ -17,7 +18,8 @@ COLS = {
 
 class Controller:
     def __init__(self, playlist):
-        self.mediaPlayer = vlc.libvlc_new(0, None).media_player_new()
+        #self.mediaPlayer = vlc.libvlc_new(0, None).media_player_new()
+        self.mediaPlayer = Player()
         self.playlist = playlist
 
     def playSelected(self, tree, path, column):
@@ -39,7 +41,7 @@ class Controller:
     @staticmethod
     def addFiles(store):
         d = Gtk.FileChooserDialog()
-        d.add_button('Accept', Gtk.ResponseType.OK)    
+        d.add_button('Accept', Gtk.ResponseType.OK)
         d.add_button('Cancel', Gtk.ResponseType.CANCEL)
         d.set_select_multiple(True)
         res = d.run()
@@ -71,21 +73,45 @@ class Application:
         self.playlist = playlist
         self.mainWindow = b.get_object('applicationwindow1')
         self.mediaPlayer = ctrl.mediaPlayer
-        self._attachVlcEvents(ctrl.mediaPlayer)
+        #self._attachVlcEvents(ctrl.mediaPlayer)
+        self._attachGstEvents(ctrl.mediaPlayer)
 
     def show(self):
         self.mainWindow.show()
 
+
+    def _attachGstEvents(self, mediaPlayer):
+        mediaPlayer.event_attach('message::eos', self.onEos)
+
+    def onEos(self, *args):
+        print('MESSAGE: EOS', args)
+        item = self.playlist.next()
+        if item is not None:
+            print(item)
+            print(self.mediaPlayer)
+            #print(type(item['location']))
+            loc = self.playlist.store.get_value(item, 3)
+            print(loc)
+            self.mediaPlayer.set_mrl(loc)
+            #self.mediaPlayer.set_mrl(item['location'])
+            self.mediaPlayer.play()
+        else:
+            print('playlist end', self, event)
+        return True
+
+    def onTag(self):
+        print('TAG EVENT')
+
     def _attachVlcEvents(self, mediaPlayer):
         event_manager = mediaPlayer.event_manager()
         #event_manager.event_attach(
-        #    vlc.EventType.MediaPlayerPaused, 
+        #    vlc.EventType.MediaPlayerPaused,
         #    self.onMediaPlayerPaused)
         #event_manager.event_attach(
-        #    vlc.EventType.MediaPlayerPlaying, 
+        #    vlc.EventType.MediaPlayerPlaying,
         #    self.onMediaPlayerPlaying)
         event_manager.event_attach(
-            vlc.EventType.MediaPlayerEndReached, 
+            vlc.EventType.MediaPlayerEndReached,
             self.onMediaPlayerEndReached, self)
 
     def onMediaPlayerPaused(self, event):
@@ -111,6 +137,7 @@ class Application:
             print('playlist end', self, event)
 
 
+Gst.init(None)
 app = Application()
 app.mainWindow.resize(600,400)
 app.show()
