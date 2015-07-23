@@ -43,6 +43,28 @@
     <property name="always_show_image">True</property>
     <signal name="activate" handler="clearPlaylist" object="liststore1" swapped="no"/>
   </object>
+  <object class="GtkActionGroup" id="libraryActions">
+    <child>
+      <object class="GtkAction" id="addToLibrary">
+        <property name="label" translatable="yes">Add to Playlist</property>
+        <property name="short_label" translatable="yes">add</property>
+        <property name="icon_name">list-add</property>
+        <signal name="activate" handler="add" object="liststore1" swapped="no"/>
+      </object>
+    </child>
+  </object>
+  <object class="GtkListStore" id="libraryStore">
+    <columns>
+      <!-- column-name Key -->
+      <column type="gchararray"/>
+      <!-- column-name Value -->
+      <column type="gchararray"/>
+      <!-- column-name Name -->
+      <column type="gchararray"/>
+      <!-- column-name Location -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
   <object class="GtkListStore" id="liststore1">
     <columns>
       <!-- column-name Title -->
@@ -93,6 +115,7 @@
                 <property name="vexpand">True</property>
                 <property name="model">liststore1</property>
                 <property name="reorderable">True</property>
+                <property name="search_column">0</property>
                 <signal name="row-activated" handler="playSelected" swapped="no"/>
                 <child internal-child="selection">
                   <object class="GtkTreeSelection" id="treeview-selection1">
